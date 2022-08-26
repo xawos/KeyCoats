@@ -7,7 +7,7 @@
 // https://thecustomizewindows.com/wp-content/uploads/2017/06/Nokia-5110-Arduino-Wiring-Technical-Details-Basic-Arduino-LCD.jpg
 // Ili9341 SPI pinout:
 // https://thesolaruniverse.files.wordpress.com/2021/03/092_figure_04_96_dpi.png
-#define DEBUG true ///////////////////////////////////////DEBBY
+#define DEBUG false ///////////////////////////////////////DEBBY
 #include "USBHost_t36.h"
 #include <SD.h>
 #include <SPI.h>
@@ -309,7 +309,6 @@ void PressMouseAction(uint32_t mouse_action){
 #if DEBUG    
   Serial.print("OnMousePress: ");sprintf("%s, %s, %s",btn1_click, btn3_click, btn2_click);
 #endif
-    char prs;prs=prs+btn1_click+btn3_click+btn2_click;lcd.setCursor(0,4);lcd.print("msprs:");lcd.println(prs);
     Mouse.set_buttons(btn1_click, btn3_click, btn2_click);
   }
 }
@@ -338,7 +337,6 @@ void ReleaseMouseAction(uint32_t mouse_action){
 #if DEBUG
   Serial.print("OnMouseRelease: ");sprintf("%s, %s, %s",btn1_click, btn3_click, btn2_click);
 #endif
-    char prs;prs=prs+btn1_click+btn3_click+btn2_click;lcd.setCursor(0,5);lcd.print("msrls:");lcd.println(prs);
     Mouse.set_buttons(btn1_click, btn3_click, btn2_click);
   }
 }
