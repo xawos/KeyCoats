@@ -8,7 +8,6 @@
 // Ili9341 SPI pinout:
 // https://thesolaruniverse.files.wordpress.com/2021/03/092_figure_04_96_dpi.png
 #define DEBUG true ///////////////////////////////////////DEBBY
-#define DELCD true //////////////////////////////////5110 DEBBY
 #include "USBHost_t36.h"
 #include <SD.h>
 #include <SPI.h>
@@ -55,11 +54,9 @@ size_t last_movement = 0;
 size_t last_scroll = 0;
 #define delay_motion_time 5
 #define delay_scroll_time 100
-#if DELCD
 #include <Nokia_LCD.h>
 Nokia_LCD lcd(8,7,6,20,21,36);
 //LCD pins:CLK,DIN,DC,CE,RST,BL
-#endif
 
 uint32_t ModToKeyCode(uint8_t keymod){
   switch(keymod) {
