@@ -1,0 +1,4 @@
+KEY_RIGHT right
+KEY_LEFT left
+KEY_DOWN down
+KEY_UP up

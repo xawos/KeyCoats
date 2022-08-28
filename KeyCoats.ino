@@ -4,10 +4,10 @@
 // Teensy pinout:
 // https://www.pjrc.com/teensy/pinout.html#:~:text=Teensy%204.1
 // DEBBY LCD (Nokia 5110 84x64) pinout:
-// https://thecustomizewindows.com/wp-content/uploads/2017/06/Nokia-5110-Arduino-Wiring-Technical-Details-Basic-Arduino-LCD.jpg
+// https://thecustsomizewindows.com/wp-content/uploads/2017/06/Nokia-5110-Arduino-Wiring-Technical-Details-Basic-Arduino-LCD.jpg
 // Ili9341 SPI pinout:
 // https://thesolaruniverse.files.wordpress.com/2021/03/092_figure_04_96_dpi.png
-#define DEBUG false ///////////////////////////////////////DEBBY
+#define DEBUG true ///////////////////////////////////////DEBBY
 #include "USBHost_t36.h"
 #include <SD.h>
 #include <SPI.h>
@@ -30,6 +30,7 @@ bool layer2_trigger[0xff + 1];
 uint32_t layer1[0xff + 1];
 uint32_t layer2[0xff + 1];
 uint32_t layer3[0xff + 1];
+uint32_t layer4[0xff + 1];
 #ifdef KEYBOARD_INTERFACE
 uint8_t keyboard_last_leds = 0;
 uint8_t keyboard_modifiers = 0;
@@ -139,6 +140,9 @@ uint32_t MapKeyThroughLayers(uint32_t key){
         final_key = layer2[key_idx];
         break;
       } else if (layer == 3 && layer3[key_idx]) {
+        final_key = layer3[key_idx];
+        break;
+      } else if (layer == 4 && layer4[key_idx]) {
         final_key = layer3[key_idx];
         break;
       }
@@ -376,7 +380,7 @@ void setup(){
   for (size_t i = 0; i < NUM_MOUSE_ACTIONS; i++) {
     MOUSE_STATE[i] = false;
   }
-  for(size_t layer = 0; layer < 4; layer++) {
+  for(size_t layer = 0; layer < 5; layer++) {
     String filename = String("layer") + String(layer) + ".txt";
     myFile = SD.open(filename.c_str());
     if (myFile) {
