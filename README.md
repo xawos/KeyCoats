@@ -34,7 +34,7 @@ Right now I'm using the Nokia 5110 Display, but will use the ili9341 as it allow
 
 # Latest changes
 
-- Added layer 4 with display keys, although for the moment they only output 65535
+- Added layer 4 with display keys, no menu yet
 - Added simple display (the Nokia 5110 one) to start building a structure, while the ILI9341 arrives
-- Waiting for the EEPROM as well, so that we can save the config file in flash instead, possibly even multiple layouts
+- Waiting for the EEPROM as well, so that we can save the config file in flash instead, possibly even multiple layouts. Will use the internal one in the meanwhile.
 - Need to find a distributor in Europe that presoldery's PSRAM and flash as well, or learn to solder SMD perhaps, if i can get those chips shipped here

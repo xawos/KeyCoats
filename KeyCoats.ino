@@ -63,14 +63,60 @@ Nokia_LCD lcd(8, 7, 6, 20, 21, 36);
 
 void displayRawPress(uint32_t key) {
 #if DEBUG
-  Serial.print("DisplayPress: "); Serial.println(key);
+  Serial.print("DisplayPress: "); Serial.print(key);
+  switch (key) {
+  case 62:
+    Serial.println(" = ENTER");
+    break;
+  case 64:
+    Serial.println(" = BACK");
+    break;
+  case 101:
+    Serial.println(" = RIGHT");
+    break;
+  case 102:
+    Serial.println(" = LEFT");
+    break;
+  case 103:
+    Serial.println(" = DOWN");
+    break;
+  case 104:
+    Serial.println(" = UP");
+    break;
+  default:
+    Serial.print(" Not assigned to layer ");Serial.println(current_layer);
+    break;
+  }
 #endif
   lcd.setCursor(0, 4); lcd.print("disp: "); lcd.println(key);
 }
 
 void displayRawRelease(uint32_t key) {
 #if DEBUG
-  Serial.print("DisplayRelease: "); Serial.println(key);
+  Serial.print("DisplayRelease: "); Serial.print(key);
+  switch (key) {
+    case 62:
+      Serial.println(" = ENTER");
+      break;
+    case 64:
+      Serial.println(" = BACK");
+      break;
+    case 101:
+      Serial.println(" = RIGHT");
+      break;
+    case 102:
+      Serial.println(" = LEFT");
+      break;
+    case 103:
+      Serial.println(" = DOWN");
+      break;
+    case 104:
+      Serial.println(" = UP");
+      break;
+    default:
+      Serial.print(" Not assigned to layer ");Serial.println(current_layer);
+      break;
+  }
 #endif
   lcd.setCursor(0, 5); lcd.print("disp: "); lcd.println(key);
 }
@@ -146,26 +192,13 @@ uint32_t MapKeyThroughLayers(uint32_t key) {
     // Check if the bit for this layer is set.
     uint8_t test = layer & current_layer;
     if (test == layer) {
-      if (layer == 0 && layer0[key_idx]) {
-        final_key = layer0[key_idx];
-        break;
-      } else if (layer == 1 && layer1[key_idx]) {
-        final_key = layer1[key_idx];
-        break;
-      } else if (layer == 2 && layer2[key_idx]) {
-        final_key = layer2[key_idx];
-        break;
-      } else if (layer == 3 && layer3[key_idx]) {
-        final_key = layer3[key_idx];
-        break;
-      } else if (layer == 4 && layer4[key_idx]) {
-        final_key = layer4[key_idx];
-        break;
-      }
+      if (layer == 0 && layer0[key_idx]){final_key = layer0[key_idx];break;}else
+      if (layer == 1 && layer1[key_idx]){final_key = layer1[key_idx];break;}else
+      if (layer == 2 && layer2[key_idx]){final_key = layer2[key_idx];break;}else
+      if (layer == 3 && layer3[key_idx]){final_key = layer3[key_idx];break;}else
+      if (layer == 4 && layer4[key_idx]){final_key = layer4[key_idx];break;}
     }
-    if (layer == 0) {
-      break;
-    }
+    if (layer == 0) {break;}
     layer--;
   }
   return final_key;
@@ -179,7 +212,7 @@ void OnHIDExtrasPress(uint32_t top, uint16_t key) {
 #error "KEYMEDIA_INTERFACE is Not defined"
 #endif
 #if DEBUG
-    Serial.print("onMediaPress"); Serial.println(0XE400 | key);
+    Serial.print("onMediaPress");Serial.println(0XE400 | key);
 #endif
   }
 #endif
@@ -190,7 +223,7 @@ void OnHIDExtrasRelease(uint32_t top, uint16_t key) {
   if (top == 0xc0000) {
     Keyboard.release(0XE400 | key);
 #if DEBUG
-    Serial.print("onMediaRelease"); Serial.println(0XE400 | key);
+    Serial.print("onMediaRelease");Serial.println(0XE400 | key);
 #endif
   }
 #endif
@@ -200,43 +233,35 @@ void OnRawPress(uint8_t keycode) {
 #ifdef KEYBOARD_INTERFACE
   if (keyboard_leds != keyboard_last_leds) {
     keyboard_last_leds = keyboard_leds;
-    keyboard1.LEDS(keyboard_leds);
-  }
+    keyboard1.LEDS(keyboard_leds);}
   uint32_t key = 0;
   if (keycode >= 103 && keycode < 111) {
     uint8_t keybit = 1 << (keycode - 103);
     key = ModToKeyCode(keybit);
-  } else {
-    key = 0xF000 | keycode;
-  }
+  } else {key = 0xF000 | keycode;}
   size_t key_idx = KeyCodeToLinearID(key);
-  if (layer1_trigger[key_idx]) {
-    current_layer |= 0x01;
-  } else if (layer2_trigger[key_idx]) {
-    current_layer |= 0x02;
-  } else if (layer3_trigger[key_idx]) {
-    current_layer |= 0x03;
-  } else if (layer4_trigger[key_idx]) {
-    current_layer |= 0x04;
-  } else {
+  if (layer1_trigger[key_idx]){current_layer |= 0x01;}
+  else if (layer2_trigger[key_idx]){current_layer |= 0x02;}
+  else if (layer3_trigger[key_idx]){current_layer |= 0x03;}
+  else if (layer4_trigger[key_idx]){current_layer |= 0x04;}
+  else{
     key = MapKeyThroughLayers(key);
     if (current_layer == 0x04) {
-      displayRawPress(key);
-      return;
-    }
-    if (IsMod(key)) {
+      displayRawPress(key_idx);
+      return;}
+    if (IsMod(key)){
       uint8_t keybit = KeyCodeToMod(key);
       keyboard_modifiers |= keybit;
       Keyboard.set_modifier(keyboard_modifiers);
       Keyboard.send_now();
 #if DEBUG
-      Serial.print("onModPress: "); Serial.println(key); Serial.print(" Layer:"); Serial.println(current_layer);
+      Serial.print("onModPress: "); Serial.print(key); Serial.print(" Layer:"); Serial.println(current_layer);
 #endif
       lcd.setCursor(0, 0); lcd.print("moprs:"); lcd.println(key);
     } else {
       Keyboard.press(key);
 #if DEBUG
-      Serial.print("onRawPress: "); Serial.println(key); Serial.print(" Layer:"); Serial.println(current_layer);
+      Serial.print("onRawPress: "); Serial.print(key); Serial.print(" Layer:"); Serial.println(current_layer);
 #endif
       lcd.setCursor(0, 2); lcd.print("raprss:"); lcd.println(key);
     }
@@ -255,33 +280,26 @@ void OnRawRelease(uint8_t keycode) {
     key = 0xF000 | keycode;
   }
   size_t key_idx = KeyCodeToLinearID(key);
-  if (layer1_trigger[key_idx]) {
-    current_layer &= ~0x01;
-  } else if (layer2_trigger[key_idx]) {
-    current_layer &= ~0x02;
-  } else if (layer3_trigger[key_idx]) {
-    current_layer &= ~0x03;
-  } else if (layer4_trigger[key_idx]) {
-    current_layer &= ~0x04;
-  } else {
+  if (layer1_trigger[key_idx]) {current_layer &= ~0x01;}else
+  if (layer2_trigger[key_idx]) {current_layer &= ~0x02;}else
+  if (layer3_trigger[key_idx]) {current_layer &= ~0x03;}else
+  if (layer4_trigger[key_idx]) {current_layer &= ~0x04;}
+  else {
     key = MapKeyThroughLayers(key);
-    if (current_layer == 0x04) {
-      displayRawRelease(key);
-      return;
-    }
+    if (current_layer == 0x04) {displayRawRelease(key_idx);return;}
     if (IsMod(key)) {
       uint8_t keybit = KeyCodeToMod(key);
       keyboard_modifiers &= ~keybit;
       Keyboard.set_modifier(keyboard_modifiers);
       Keyboard.send_now();
 #if DEBUG
-      Serial.print("onModRelease: "); Serial.println(key); Serial.print(" Layer:"); Serial.println(current_layer);
+      Serial.print("onModRelease: "); Serial.print(key); Serial.print(" Layer:"); Serial.println(current_layer);
 #endif
       lcd.setCursor(0, 1); lcd.print("morls:"); lcd.println(key);
     } else {
       Keyboard.release(key);
 #if DEBUG
-      Serial.print("onRawRelease: "); Serial.println(key); Serial.print(" Layer:"); Serial.println(current_layer);
+      Serial.print("onRawRelease: "); Serial.print(key); Serial.print(" Layer:"); Serial.println(current_layer);
 #endif
       lcd.setCursor(0, 3); lcd.print("rarls:"); lcd.println(key);
     }
@@ -291,57 +309,43 @@ void OnRawRelease(uint8_t keycode) {
 
 void ProcessMouseKeys() {
   int vert_motion = 0;
-  if (MOUSE_STATE[0]) {
-    vert_motion--;
-  }
-  if (MOUSE_STATE[1]) {
-    vert_motion++;
-  }
-  int horzt_motion = 0;
-  if (MOUSE_STATE[2]) {
-    horzt_motion--;
-  }
-  if (MOUSE_STATE[3]) {
-    horzt_motion++;
-  }
-  int vert_scroll = 0;
-  if (MOUSE_STATE[7]) {
-    vert_scroll++;
-  }
-  if (MOUSE_STATE[8]) {
-    vert_scroll--;
-  }
-  int horzt_scroll = 0;
-  if (MOUSE_STATE[9]) {
-    horzt_scroll++;
-  }
-  if (MOUSE_STATE[10]) {
-    horzt_scroll--;
-  }
-
+  if (MOUSE_STATE[0]){vert_motion--;}
+  if (MOUSE_STATE[1]){vert_motion++;}int horzt_motion = 0;
+  if (MOUSE_STATE[2]){horzt_motion--;}
+  if (MOUSE_STATE[3]){horzt_motion++;}int vert_scroll = 0;
+  if (MOUSE_STATE[7]){vert_scroll++;}
+  if (MOUSE_STATE[8]){vert_scroll--;}int horzt_scroll = 0;
+  if (MOUSE_STATE[9]){horzt_scroll++;}
+  if (MOUSE_STATE[10]){horzt_scroll--;}
   size_t current_time = millis();
   size_t delta = current_time - last_movement;
-  if (delta > delay_motion_time) {
-    Mouse.move(horzt_motion * move_mul_h / default_mul, vert_motion * move_mul_v / default_mul);
-    last_movement = current_time;
-    if (horzt_motion) {
-      move_mul_h += 1;
-      if (move_mul_h > (3 * default_mul)) {
-        move_mul_h = (3 * default_mul);
+  if(vert_motion!=0 || horzt_motion!=0 || vert_scroll!=0 || horzt_scroll!=0){
+//#if DEBUG
+//    String mouseMotion;
+//    mouseMotion = " "+vert_motion+" "+horzt_motion+" "+vert_scroll+" "+horzt_scroll+" ";
+//    Serial.println(mouseMotion);
+//#endif
+    if (delta > delay_motion_time) {
+      Mouse.move(horzt_motion * move_mul_h / default_mul, vert_motion * move_mul_v / default_mul);
+      last_movement = current_time;
+      if (horzt_motion) {
+        move_mul_h += 1;
+        if (move_mul_h > (3 * default_mul)){
+          move_mul_h = (3 * default_mul);
+        }
+      }
+      if (vert_motion) {
+        move_mul_v += 1;
+        if (move_mul_v > (3 * default_mul)){
+          move_mul_v = (3 * default_mul);
+        }
       }
     }
-    if (vert_motion) {
-      move_mul_v += 1;
-      if (move_mul_v > (3 * default_mul)) {
-        move_mul_v = (3 * default_mul);
-      }
+    delta = current_time - last_scroll;
+    if (delta > delay_scroll_time) {
+      Mouse.scroll(vert_scroll, horzt_scroll);
+      last_scroll = current_time;
     }
-  }
-
-  delta = current_time - last_scroll;
-  if (delta > delay_scroll_time) {
-    Mouse.scroll(vert_scroll, horzt_scroll);
-    last_scroll = current_time;
   }
 }
 
@@ -413,15 +417,8 @@ void setup() {
 #endif
   lcd.begin(); lcd.setBacklight(true); lcd.setContrast(60); lcd.setInverted(false); lcd.clear(true);
   for (size_t i = 0; i < 0xff; i++) {
-    layer0[i] = 0;
-    layer1[i] = 0;
-    layer2[i] = 0;
-    layer3[i] = 0;
-    layer4[i] = 0;
-    layer1_trigger[i] = false;
-    layer2_trigger[i] = false;
-    layer3_trigger[i] = false;
-    layer4_trigger[i] = false;
+    layer0[i] = 0; layer1[i] = 0; layer2[i] = 0; layer3[i] = 0; layer4[i] = 0;
+    layer1_trigger[i]=false;layer2_trigger[i]=false;layer3_trigger[i]=false;layer4_trigger[i]=false;
   }
   if (!SD.begin(chipSelect)) {
 #if DEBUG
@@ -432,9 +429,7 @@ void setup() {
     lcd.print("MicroSD ERROR!!!");
     return;
   }
-  for (size_t i = 0; i < NUM_MOUSE_ACTIONS; i++) {
-    MOUSE_STATE[i] = false;
-  }
+  for (size_t i = 0; i < NUM_MOUSE_ACTIONS; i++){MOUSE_STATE[i] = false;}
   for (size_t layer = 0; layer < 5; layer++) {
     String filename = String("layer") + String(layer) + ".txt";
     myFile = SD.open(filename.c_str());
@@ -467,13 +462,13 @@ void setup() {
           uint32_t dst_key = StringToKeyCode(dst);
           if (layer == 0) {
             layer0[src_idx] = dst_key;
-          } else if (layer == 1) {
+          } else if (layer == 1){
             layer1[src_idx] = dst_key;
-          } else if (layer == 2) {
+          } else if (layer == 2){
             layer2[src_idx] = dst_key;
-          } else if (layer == 3) {
+          } else if (layer == 3){
             layer3[src_idx] = dst_key;
-          } else if (layer == 4) {
+          } else if (layer == 4){
             layer4[src_idx] = dst_key;
           }
         }
@@ -488,19 +483,15 @@ void setup() {
     }
   }
   keyboard1.attachRawPress(OnRawPress);
-  keyboard1.attachRawRelease(OnRawRelease);
   keyboard1.attachExtrasPress(OnHIDExtrasPress);
+  keyboard1.attachRawRelease(OnRawRelease);
   keyboard1.attachExtrasRelease(OnHIDExtrasRelease);
   myusb.begin();
 #if DEBUG
-  Serial.begin(9600); while (!Serial) {
-    ;
-  } Serial.println("Stuff initialized!");
+  Serial.begin(9600); while (!Serial) {;}
+  Serial.println("Stuff initialized!");
 #endif
-  lcd.clear(); for (int i = 0; i < 6; i++) {
-    lcd.setCursor(0, i);
-    lcd.print("Porco Dio");
-  } lcd.clear();
+  lcd.clear(); for (int i = 0; i < 6; i++) {lcd.setCursor(0, i);lcd.print("Porco Dio");} lcd.clear();
 }
 
 void loop() {
