@@ -34,6 +34,7 @@ Right now I'm using the Nokia 5110 Display, but will use the ili9341 as it allow
 
 # Latest changes
 
+- Adding feature for loading from EEPROM, skeleton for future upgrade without MicroSD
 - Added layer 4 with display keys, no menu yet
 - Added simple display (the Nokia 5110 one) to start building a structure, while the ILI9341 arrives
 - Waiting for the EEPROM as well, so that we can save the config file in flash instead, possibly even multiple layouts. Will use the internal one in the meanwhile.
