@@ -7,7 +7,6 @@
 // https://thecustsomizewindows.com/wp-content/uploads/2017/06/Nokia-5110-Arduino-Wiring-Technical-Details-Basic-Arduino-LCD.jpg
 // Ili9341 SPI pinout:
 // https://thesolaruniverse.files.wordpress.com/2021/03/092_figure_04_96_dpi.png
-#define DEBUG true ///////////////////////////////////////DEBBY
 #include "USBHost_t36.h"
 #include <SD.h>
 #include <SPI.h>
@@ -16,6 +15,10 @@
 #include "./mouse_defs.h"
 #include "./mouse_xlist.h"
 #include <LittleFS.h>
+//#define DEBUGLOG_DISABLE_LOG    //Uncomment to disable debug logs
+#define DEBUG true /////////////////For display and stuff
+#define DEBUGLOG_DEFAULT_LOG_LEVEL_DEBUG
+#include <DebugLog.h>
 
 USBHost myusb;
 File myFile;
@@ -42,8 +45,7 @@ uint8_t keyboard_modifiers = 0;
 #define SHOW_KEYBOARD_DATA
 #endif
 #define X(keycode) + 1
-const size_t NUM_KEYS = 0
-                        ;
+const size_t NUM_KEYS = 0;
 #undef X
 #define X(mouseaction)  + 1
 const size_t NUM_MOUSE_ACTIONS = 0;
@@ -220,9 +222,7 @@ void OnHIDExtrasPress(uint32_t top, uint16_t key) {
 #ifndef KEYMEDIA_INTERFACE
 #error "KEYMEDIA_INTERFACE is Not defined"
 #endif
-#if DEBUG
-    Serial.print("onMediaPress");Serial.println(0XE400 | key);
-#endif
+    LOG_INFO("onHIDPress:",0XE400 | key,"Layer:",current_layer);
   }
 #endif
 }
@@ -231,9 +231,7 @@ void OnHIDExtrasRelease(uint32_t top, uint16_t key) {
 #ifdef KEYBOARD_INTERFACE
   if (top == 0xc0000) {
     Keyboard.release(0XE400 | key);
-#if DEBUG
-    Serial.print("onMediaRelease");Serial.println(0XE400 | key);
-#endif
+    LOG_INFO("onHIDRelease:",0XE400 | key,"Layer:",current_layer);
   }
 #endif
 }
@@ -263,15 +261,11 @@ void OnRawPress(uint8_t keycode) {
       keyboard_modifiers |= keybit;
       Keyboard.set_modifier(keyboard_modifiers);
       Keyboard.send_now();
-#if DEBUG
-      Serial.print("onModPress: "); Serial.print(key); Serial.print(" Layer:"); Serial.println(current_layer);
-#endif
+      LOG_INFO("onModPress:",key,"Layer:",current_layer);
       lcd.setCursor(0, 0); lcd.print("moprs:"); lcd.println(key);
     } else {
       Keyboard.press(key);
-#if DEBUG
-      Serial.print("onRawPress: "); Serial.print(key); Serial.print(" Layer:"); Serial.println(current_layer);
-#endif
+      LOG_INFO("onRawPress:",key,"Layer:",current_layer);
       lcd.setCursor(0, 2); lcd.print("raprss:"); lcd.println(key);
     }
   }
@@ -301,15 +295,11 @@ void OnRawRelease(uint8_t keycode) {
       keyboard_modifiers &= ~keybit;
       Keyboard.set_modifier(keyboard_modifiers);
       Keyboard.send_now();
-#if DEBUG
-      Serial.print("onModRelease: "); Serial.print(key); Serial.print(" Layer:"); Serial.println(current_layer);
-#endif
+      LOG_INFO("onModRelease:",key,"Layer:",current_layer);
       lcd.setCursor(0, 1); lcd.print("morls:"); lcd.println(key);
     } else {
       Keyboard.release(key);
-#if DEBUG
-      Serial.print("onRawRelease: "); Serial.print(key); Serial.print(" Layer:"); Serial.println(current_layer);
-#endif
+      LOG_INFO("onRawRelease:",key,"Layer:",current_layer);
       lcd.setCursor(0, 3); lcd.print("rarls:"); lcd.println(key);
     }
   }
@@ -329,11 +319,6 @@ void ProcessMouseKeys() {
   size_t current_time = millis();
   size_t delta = current_time - last_movement;
   if(vert_motion!=0 || horzt_motion!=0 || vert_scroll!=0 || horzt_scroll!=0){
-//#if DEBUG
-//    String mouseMotion;
-//    mouseMotion = " "+vert_motion+" "+horzt_motion+" "+vert_scroll+" "+horzt_scroll+" ";
-//    Serial.println(mouseMotion);
-//#endif
     if (delta > delay_motion_time) {
       Mouse.move(horzt_motion * move_mul_h / default_mul, vert_motion * move_mul_v / default_mul);
       last_movement = current_time;
@@ -373,9 +358,7 @@ void PressMouseAction(uint32_t mouse_action) {
     btn3_click = 1;
   }
   if (set_clicked) {
-#if DEBUG
-    Serial.print("OnMousePress: "); sprintf("%s, %s, %s", btn1_click, btn3_click, btn2_click);
-#endif
+    LOG_INFO("OnMousePress:",btn1_click, btn3_click, btn2_click);
     Mouse.set_buttons(btn1_click, btn3_click, btn2_click);
   }
 }
@@ -401,9 +384,7 @@ void ReleaseMouseAction(uint32_t mouse_action) {
     move_mul_h = default_mul;
   }
   if (set_clicked) {
-#if DEBUG
-    Serial.print("OnMouseRelease: "); sprintf("%s, %s, %s", btn1_click, btn3_click, btn2_click);
-#endif
+    LOG_INFO("OnMouseRelease:",btn1_click, btn3_click, btn2_click);
     Mouse.set_buttons(btn1_click, btn3_click, btn2_click);
   }
 }
@@ -423,15 +404,11 @@ void loadMicroSDConfig(){
     String filename = String("layer") + String(layer) + ".txt";
     myFile = SD.open(filename.c_str());
     if (myFile) {
-#if DEBUG
-      Serial.write("opening "); Serial.println(filename);
-#endif
+      LOG_ERROR("opening ",filename);
       lcd.clear(); lcd.setCursor(0, 0); lcd.print("Loading Conf:");
       while (myFile.available()) {
         String config_line = myFile.readStringUntil('\n');
-#if DEBUG
-        Serial.print(":"); Serial.println(config_line);
-#endif
+        LOG_INFO(":",config_line);
         int split = config_line.indexOf(' ');
         if (split < 0) {
           continue;
@@ -466,9 +443,7 @@ void loadMicroSDConfig(){
       myFile.close();
       lcd.setCursor(0, layer); lcd.print(filename);
     } else {
-#if DEBUG
-      Serial.write("error opening "); Serial.println(filename);
-#endif
+      LOG_ERROR("error opening",filename);
       lcd.clear(); lcd.setCursor(0, 0); lcd.print("ERROPEN:"); lcd.setCursor(0, 1); lcd.print(filename);
     }
   }
@@ -479,14 +454,10 @@ bool loadEEPROMConfig(){
     String filename = String("layer") + String(layer) + ".txt";
     myFile = maheeprom.open(filename.c_str());
     if(myFile){
-  #if DEBUG
-  Serial.write("Opening "); Serial.print(filename);Serial.println(" from EEPROM");
-  #endif
+      LOG_INFO("Opening",filename,"from EEPROM");
       while(myFile.available()){
         String config_line = myFile.readStringUntil('\n');
-  #if DEBUG
-  Serial.print(":"); Serial.println(config_line);
-  #endif
+        LOG_DEBUG(":",config_line);
         int split = config_line.indexOf(' ');
         if (split < 0) {
           continue;
@@ -520,13 +491,11 @@ bool loadEEPROMConfig(){
       }
       myFile.close();
       lcd.clear(); lcd.setCursor(0, 0); lcd.print("Loaded Conf:"); lcd.setCursor(0, layer); lcd.print(filename);
-      return true;
+      continue;
     } else {
-  #if DEBUG
-  Serial.write("Error opening "); Serial.println(filename);
-  #endif
+      LOG_ERROR("Error opening", filename);
       lcd.clear(); lcd.setCursor(0, 0); lcd.print("ERROPEN:"); lcd.setCursor(0, 1); lcd.print(filename);
-      return false;
+      //return false;
     }
   }
 }
@@ -571,31 +540,23 @@ Serial.println("- failed to open directory");
 }
 
 bool writeToEEPROM(){
-#if DEBUG
-Serial.println("Formatting EEPROM");
-#endif
+  LOG_INFO("Formatting EEPROM");
   maheeprom.quickFormat();
   for (size_t layer = 0; layer < 5; layer++) {
     String filename = String("layer") + String(layer) + ".txt";
     myFile = SD.open(filename.c_str(), "r");
     mahFile = maheeprom.open(filename.c_str(), "a+");
     if(SD.exists(filename.c_str())){
-#if DEBUG
-Serial.print("="); Serial.println(filename.c_str());
-#endif
+      LOG_DEBUG("=",filename.c_str());
       while(myFile.available()){
         String config_line = myFile.readStringUntil('\n');
-//#if DEBUG
-//Serial.print(":"); Serial.println(config_line);
-//#endif
-        mahFile.print(config_line);
+        LOG_DEBUG("=",config_line);
+        mahFile.println(config_line.c_str());
       }
       myFile.close();
       mahFile.close();
     }else{
-#if DEBUG
-Serial.print("Couldn't write: ");Serial.println(filename.c_str());
-#endif
+      LOG_ERROR("Couldn't write: ",filename.c_str());
       lcd.clear();lcd.setCursor(0,0);lcd.print("Fuck");
       return false;
     }
@@ -604,28 +565,16 @@ Serial.print("Couldn't write: ");Serial.println(filename.c_str());
   mahFile = maheeprom.open(versionFilename.c_str(), "a+");
   if(SD.exists(versionFilename.c_str())){
     while(myFile.available()){
-      String config_line = myFile.readStringUntil('\n');
-#if DEBUG
-Serial.print("v"); Serial.println(config_line);
-#endif
-      mahFile.write(config_line.c_str()+'\n');
+      String config_line = myFile.readStringUntil('\n').trim();
+      LOG_INFO("v",config_line);
+      mahFile.println(config_line.c_str());
       sdversion = config_line;
     }
     myFile.close();
     mahFile.close();
-#if DEBUG
-Serial.println(maheeprom.exists("version.txt")?"v yee":"v jodete");
-Serial.println(maheeprom.exists("layer0.txt")?"0 yee":"0 jodete");
-Serial.println(maheeprom.exists("layer1.txt")?"1 yee":"1 jodete");
-Serial.println(maheeprom.exists("layer2.txt")?"2 yee":"2 jodete");
-Serial.println(maheeprom.exists("layer3.txt")?"3 yee":"3 jodete");
-Serial.println(maheeprom.exists("layer4.txt")?"4 yee":"4 jodete");
-Serial.print("Wrote to EEPROM v");Serial.println(sdversion);
-#endif
+    LOG_INFO("Wrote to EEPROM v",sdversion);
   } else {
-#if DEBUG
-Serial.print("No version.txt file in MicroSD");
-#endif
+    LOG_ERROR("No version.txt file in MicroSD");
     myFile.close();
     mahFile.close();
     return false;
@@ -634,50 +583,35 @@ Serial.print("No version.txt file in MicroSD");
 }
 
 bool loadKCConfig(){
-#if DEBUG
-Serial.println("Loading config from EEPROM or microSD");
-#endif
+  LOG_INFO("Loading config from EEPROM or microSD");
   if (!SD.begin(chipSelect)) {
-#if DEBUG
-Serial.println("No MicroSD!");
-#endif
+    LOG_INFO("No MicroSD!");
     lcd.clear();
     lcd.setCursor(0, 3);
-    lcd.print("No MicroSD!");
+    lcd.print("No MicroSD, checking EEPROM");
     myFile = maheeprom.open(versionFilename.c_str());
     // do we have version.txt in the EEPROM?
     if (maheeprom.exists(versionFilename.c_str())) {
       while (myFile.available()) {
-        eepromversion = myFile.read();
-#if DEBUG
-Serial.print("Version:");Serial.println(eepromversion);
-#endif
+        eepromversion = myFile.readStringUntil('\n').trim();
+        LOG_INFO("EEPROM Version:",eepromversion);
       }
       myFile.close();
       if(eepromversion==kcversion){
-#if DEBUG
-Serial.print("All good, both are ");Serial.println(eepromversion);
-Serial.println("Loading from EEPROM");
-#endif
+        LOG_INFO("No MicroSD, but code and EEPROM are version", eepromversion);
         return loadEEPROMConfig();
       }
     } else {
       // no version.txt in EEPROM
-#if DEBUG
-Serial.print("Need to write EEPROM ");Serial.print(sdversion);Serial.println(" (new flash)");
-#endif
+      LOG_INFO("Need to write EEPROM ", sdversion);
       //do we have version.txt in the MicroSD?
       if(SD.exists(versionFilename.c_str())){
-#if DEBUG
-Serial.print("Trying to write EEPROM ");Serial.print(sdversion);Serial.println(" (new flash)");
-#endif
+        LOG_INFO("Trying to write EEPROM ", sdversion);
         writeToEEPROM();
         return loadEEPROMConfig();
       }else{
         // no version.txt in MicroSD
-#if DEBUG
-Serial.println("No MicroSD, can't load EEPROM");
-#endif
+        LOG_ERROR("No MicroSD, can't load EEPROM");
         return false;
       }
     }
@@ -688,91 +622,69 @@ Serial.println("No MicroSD, can't load EEPROM");
       myFile = maheeprom.open(versionFilename.c_str());
       mahFile = SD.open(versionFilename.c_str());
       while (myFile.available()) {
-#if DEBUG
-Serial.print("EEPROM Version:");Serial.println(eepromversion);
-#endif
-        eepromversion = myFile.read();
+        eepromversion = myFile.readStringUntil("\n").trim();
+        LOG_INFO("EEPROM Version:",eepromversion);
       }
       myFile.close();
       while(mahFile.available()){
-        sdversion = mahFile.read();
-#if DEBUG
-Serial.print("MicroSD Version:");Serial.println(sdversion);
-#endif
+        sdversion = mahFile.readStringUntil("\n").trim();
+        LOG_INFO("MicroSD Version:",sdversion);
       }
       mahFile.close();
       // If version is different write to EEPROM
       if(sdversion != eepromversion){
-#if DEBUG
-Serial.print("Writing to EEPROM ");Serial.print(sdversion);Serial.print(" updating from ");Serial.println(eepromversion);
-#endif
+        LOG_INFO("Writing to EEPROM",sdversion,"updating from",eepromversion);
         return writeToEEPROM() ? loadEEPROMConfig() : false;
       }else{
-#if DEBUG
-Serial.print("Same version, loading EEPROM ");Serial.println(eepromversion);
-#endif
+        LOG_INFO("Same version, loading EEPROM",eepromversion);
         bool retur = loadEEPROMConfig();
-#if DEBUG
-Serial.print("Loaded EEPROM? ");Serial.println(retur);
-#endif
+        LOG_INFO("Loaded from EEPROM?",retur);
         return retur;
       }
     }else if(SD.exists(versionFilename.c_str())){
       // only SD version exists, trying to write EEPROM
       mahFile = SD.open(versionFilename.c_str());
       while (mahFile.available()) {
-        sdversion = mahFile.readStringUntil("\n");
-#if DEBUG
-Serial.print("Writing to EEPROM ");Serial.println(sdversion);
-#endif
+        sdversion = mahFile.readStringUntil("\n").trim();
+        LOG_INFO("Writing to EEPROM from sd",sdversion);
       }
       mahFile.close();
       return writeToEEPROM() ? loadEEPROMConfig() : false;
     }else{
-#if DEBUG
-Serial.print("No MicroSD, fuck!");Serial.print(sdversion);
-#endif
+      LOG_ERROR("No MicroSD config present, wtf?");
       return false;
-    }{
-#if DEBUG
-Serial.print("Something happened, EEPROM? ");Serial.print(eepromversion);Serial.print(", SD? ");Serial.println(sdversion);
-#endif
     }
   }
 }
 
 void setup() {
-#if DEBUG
-Serial.begin(9600);Serial.print("v:");Serial.print(kcversion);Serial.println(" Initializing stuff...");
-#endif
+  LOG_INFO("v",kcversion," Initializing stuff");
   lcd.begin(); lcd.setBacklight(true); lcd.setContrast(60); lcd.setInverted(false); lcd.clear(true);
   for (size_t i = 0; i < 0xff; i++) {
-    layer0[i] = 0; layer1[i] = 0; layer2[i] = 0; layer3[i] = 0; layer4[i] = 0;
-    layer1_trigger[i]=false;layer2_trigger[i]=false;layer3_trigger[i]=false;layer4_trigger[i]=false;
+    layer0[i] = 0;
+    layer1[i] = 0;
+    layer2[i] = 0;
+    layer3[i] = 0;
+    layer4[i] = 0;
+    layer1_trigger[i]=false;
+    layer2_trigger[i]=false;
+    layer3_trigger[i]=false;
+    layer4_trigger[i]=false;
   }
   for (size_t i = 0; i < NUM_MOUSE_ACTIONS; i++){MOUSE_STATE[i] = false;}
   //loadMicroSDConfig();
-  listDir(maheeprom, "/", 1);
-#if DEBUG
-  Serial.println(maheeprom.exists("version.txt")?"v yee":"v jodete");
-  Serial.println(maheeprom.exists("layer0.txt")?"0 yee":"0 jodete");
-  Serial.println(maheeprom.exists("layer1.txt")?"1 yee":"1 jodete");
-  Serial.println(maheeprom.exists("layer2.txt")?"2 yee":"2 jodete");
-  Serial.println(maheeprom.exists("layer3.txt")?"3 yee":"3 jodete");
-  Serial.println(maheeprom.exists("layer4.txt")?"4 yee":"4 jodete");
-#endif
+  maheeprom.begin(PROG_FLASH_SIZE);
   bool alan = loadKCConfig();
+  LOG_INFO(alan?"YEEEEE":"jodete");
 #if DEBUG
-Serial.println(alan?"yee":"jodete");
+  listDir(maheeprom, "/", 1);
 #endif
   keyboard1.attachRawPress(OnRawPress);
   keyboard1.attachExtrasPress(OnHIDExtrasPress);
   keyboard1.attachRawRelease(OnRawRelease);
   keyboard1.attachExtrasRelease(OnHIDExtrasRelease);
   myusb.begin();
-#if DEBUG
-  Serial.println("Stuff initialized maybe perhaps not sure fuck off");
-#endif
+  LOG_INFO("Stuff initialized, maybe, perhaps, not sure, fuck off");
   lcd.clear(); for (int i = 0; i < 6; i++) {lcd.setCursor(0, i);lcd.print("Porco Dio");} lcd.clear();
 }
 
