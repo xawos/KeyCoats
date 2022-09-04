@@ -69,9 +69,6 @@ size_t last_movement = 0;
 size_t last_scroll = 0;
 #define delay_motion_time 5
 #define delay_scroll_time 100
-//#include <Nokia_LCD.h>
-//Nokia_LCD lcd(8, 7, 6, 20, 21, 36);
-//LCD pins:CLK,DIN,DC,CE,RST,BL
 #define PROG_FLASH_SIZE 1024 * 1024 * 1
 LittleFS_Program maheeprom;
 bool shallIUpdateEEPROM;
