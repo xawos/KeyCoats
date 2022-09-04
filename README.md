@@ -1,4 +1,4 @@
-# KeyMapper
+# KeyCoats
 
 The idea is to emulate to some extent the functionality that the [QMK firmware](https://github.com/qmk/qmk_firmware) offers but on normal keyboards.
 This is to allow one to bring your layout around without the keyboard.
@@ -7,6 +7,7 @@ Then maybe perhaps somehow I'll end up arriving to something like Cryham's [KC4]
 
 The layouts are configured in the config folder, to insert in the Teensy before running.
 Layer0 defines the keys for the successive layers, the other layers contain the remapped keys.
+(e.g. We use INSERT to use Layer 4 and control the display)
 
 I'm using the ILI9341 just like Cryham, mainly for the fast SPI option
 
