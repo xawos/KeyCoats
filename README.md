@@ -25,8 +25,6 @@ I'm using the ILI9341 just like Cryham, mainly for the fast SPI option
 
 [Teensy pinout](https://www.pjrc.com/teensy/pinout.html#:~:text=Teensy%204.1)
 
-[Nokia 5110 Display](https://thecustomizewindows.com/wp-content/uploads/2017/06/Nokia-5110-Arduino-Wiring-Technical-Details-Basic-Arduino-LCD.jpg)
-
 [Ili9341 pinout](https://thesolaruniverse.files.wordpress.com/2021/03/092_figure_04_96_dpi.png)
 
 # Latest changes
