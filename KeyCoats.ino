@@ -19,7 +19,15 @@
 #define DEBUG true /////////////////For display and stuff
 #define DEBUGLOG_DEFAULT_LOG_LEVEL_DEBUG
 #include <DebugLog.h>
-
+#define TFT_CS 10
+#define TFT_DC 9
+#define TFT_RST 255
+#define TFT_MOSI 11
+#define TFT_SCLK 13
+#define TFT_MISO 12
+#include "font_Arial.h"
+#include <ILI9341_t3.h>
+ILI9341_t3 tft = ILI9341_t3(TFT_CS, TFT_DC, TFT_RST, TFT_MOSI, TFT_SCLK, TFT_MISO);
 USBHost myusb;
 File myFile;
 File mahFile;
@@ -61,8 +69,8 @@ size_t last_movement = 0;
 size_t last_scroll = 0;
 #define delay_motion_time 5
 #define delay_scroll_time 100
-#include <Nokia_LCD.h>
-Nokia_LCD lcd(8, 7, 6, 20, 21, 36);
+//#include <Nokia_LCD.h>
+//Nokia_LCD lcd(8, 7, 6, 20, 21, 36);
 //LCD pins:CLK,DIN,DC,CE,RST,BL
 #define PROG_FLASH_SIZE 1024 * 1024 * 1
 LittleFS_Program maheeprom;
@@ -99,7 +107,7 @@ void displayRawPress(uint32_t key) {
     break;
   }
 #endif
-  lcd.setCursor(0, 4); lcd.print("disp: "); lcd.println(key);
+//  lcd.setCursor(0, 4); lcd.print("disp: "); lcd.println(key);
 }
 
 void displayRawRelease(uint32_t key) {
@@ -129,7 +137,7 @@ void displayRawRelease(uint32_t key) {
       break;
   }
 #endif
-  lcd.setCursor(0, 5); lcd.print("disp: "); lcd.println(key);
+//  lcd.setCursor(0, 5); lcd.print("disp: "); lcd.println(key);
 }
 
 uint32_t ModToKeyCode(uint8_t keymod) {
@@ -262,11 +270,11 @@ void OnRawPress(uint8_t keycode) {
       Keyboard.set_modifier(keyboard_modifiers);
       Keyboard.send_now();
       LOG_INFO("onModPress:",key,"Layer:",current_layer);
-      lcd.setCursor(0, 0); lcd.print("moprs:"); lcd.println(key);
+//      lcd.setCursor(0, 0); lcd.print("moprs:"); lcd.println(key);
     } else {
       Keyboard.press(key);
       LOG_INFO("onRawPress:",key,"Layer:",current_layer);
-      lcd.setCursor(0, 2); lcd.print("raprss:"); lcd.println(key);
+//      lcd.setCursor(0, 2); lcd.print("raprss:"); lcd.println(key);
     }
   }
 #endif
@@ -296,11 +304,11 @@ void OnRawRelease(uint8_t keycode) {
       Keyboard.set_modifier(keyboard_modifiers);
       Keyboard.send_now();
       LOG_INFO("onModRelease:",key,"Layer:",current_layer);
-      lcd.setCursor(0, 1); lcd.print("morls:"); lcd.println(key);
+//      lcd.setCursor(0, 1); lcd.print("morls:"); lcd.println(key);
     } else {
       Keyboard.release(key);
       LOG_INFO("onRawRelease:",key,"Layer:",current_layer);
-      lcd.setCursor(0, 3); lcd.print("rarls:"); lcd.println(key);
+//      lcd.setCursor(0, 3); lcd.print("rarls:"); lcd.println(key);
     }
   }
 #endif
@@ -405,7 +413,7 @@ void loadMicroSDConfig(){
     myFile = SD.open(filename.c_str());
     if (myFile) {
       LOG_ERROR("opening ",filename);
-      lcd.clear(); lcd.setCursor(0, 0); lcd.print("Loading Conf:");
+//      lcd.clear(); lcd.setCursor(0, 0); lcd.print("Loading Conf:");
       while (myFile.available()) {
         String config_line = myFile.readStringUntil('\n');
         LOG_INFO(":",config_line);
@@ -441,10 +449,10 @@ void loadMicroSDConfig(){
         }
       }
       myFile.close();
-      lcd.setCursor(0, layer); lcd.print(filename);
+//      lcd.setCursor(0, layer); lcd.print(filename);
     } else {
       LOG_ERROR("error opening",filename);
-      lcd.clear(); lcd.setCursor(0, 0); lcd.print("ERROPEN:"); lcd.setCursor(0, 1); lcd.print(filename);
+//      lcd.clear(); lcd.setCursor(0, 0); lcd.print("ERROPEN:"); lcd.setCursor(0, 1); lcd.print(filename);
     }
   }
 }
@@ -490,11 +498,11 @@ bool loadEEPROMConfig(){
         }
       }
       myFile.close();
-      lcd.clear(); lcd.setCursor(0, 0); lcd.print("Loaded Conf:"); lcd.setCursor(0, layer); lcd.print(filename);
+//      lcd.clear(); lcd.setCursor(0, 0); lcd.print("Loaded Conf:"); lcd.setCursor(0, layer); lcd.print(filename);
       continue;
     } else {
       LOG_ERROR("Error opening", filename);
-      lcd.clear(); lcd.setCursor(0, 0); lcd.print("ERROPEN:"); lcd.setCursor(0, 1); lcd.print(filename);
+//      lcd.clear(); lcd.setCursor(0, 0); lcd.print("ERROPEN:"); lcd.setCursor(0, 1); lcd.print(filename);
       //return false;
     }
   }
@@ -557,7 +565,7 @@ bool writeToEEPROM(){
       mahFile.close();
     }else{
       LOG_ERROR("Couldn't write: ",filename.c_str());
-      lcd.clear();lcd.setCursor(0,0);lcd.print("Fuck");
+//      lcd.clear();lcd.setCursor(0,0);lcd.print("Fuck");
       return false;
     }
   }
@@ -586,9 +594,9 @@ bool loadKCConfig(){
   LOG_INFO("Loading config from EEPROM or microSD");
   if (!SD.begin(chipSelect)) {
     LOG_INFO("No MicroSD!");
-    lcd.clear();
-    lcd.setCursor(0, 3);
-    lcd.print("No MicroSD, checking EEPROM");
+//    lcd.clear();
+//    lcd.setCursor(0, 3);
+//    lcd.print("No MicroSD, checking EEPROM");
     myFile = maheeprom.open(versionFilename.c_str());
     // do we have version.txt in the EEPROM?
     if (maheeprom.exists(versionFilename.c_str())) {
@@ -659,7 +667,19 @@ bool loadKCConfig(){
 
 void setup() {
   LOG_INFO("v",kcversion," Initializing stuff");
-  lcd.begin(); lcd.setBacklight(true); lcd.setContrast(60); lcd.setInverted(false); lcd.clear(true);
+  maheeprom.begin(PROG_FLASH_SIZE);
+  tft.begin();
+  tft.setRotation(3);
+  tft.fillScreen(ILI9341_BLACK);
+  tft.setCursor(10, 1);
+  tft.setTextSize(2);
+  tft.setTextColor(ILI9341_ORANGE);
+  tft.setFont(Arial_14);
+  tft.print("Never gonna give you up");
+  tft.setCursor(50, 20);
+  tft.setTextSize(2);
+  tft.setFont(Arial_10);
+  tft.print("Never gonna let you down");
   for (size_t i = 0; i < 0xff; i++) {
     layer0[i] = 0;
     layer1[i] = 0;
@@ -673,19 +693,17 @@ void setup() {
   }
   for (size_t i = 0; i < NUM_MOUSE_ACTIONS; i++){MOUSE_STATE[i] = false;}
   //loadMicroSDConfig();
-  maheeprom.begin(PROG_FLASH_SIZE);
   bool alan = loadKCConfig();
   LOG_INFO(alan?"YEEEEE":"jodete");
-#if DEBUG
-  listDir(maheeprom, "/", 1);
-#endif
+//#if DEBUG
+//  listDir(maheeprom, "/", 1);
+//#endif
   keyboard1.attachRawPress(OnRawPress);
   keyboard1.attachExtrasPress(OnHIDExtrasPress);
   keyboard1.attachRawRelease(OnRawRelease);
   keyboard1.attachExtrasRelease(OnHIDExtrasRelease);
   myusb.begin();
   LOG_INFO("Stuff initialized, maybe, perhaps, not sure, fuck off");
-  lcd.clear(); for (int i = 0; i < 6; i++) {lcd.setCursor(0, i);lcd.print("Porco Dio");} lcd.clear();
 }
 
 void loop() {
